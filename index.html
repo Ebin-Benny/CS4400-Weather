@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+  <!-- development version, includes helpful console warnings -->
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <h1>Weather</h1>
+  <div id="app">
+    <h2>{{ city }}</h2>
+    <input v-model="input" v-on:keyup.enter="submit" />
+    <table v-if="packing !== undefined">
+      <tr></tr>
+      <tr>
+        <td>Bring an Umbrella?</td>
+        <td>
+          <b>{{ packing.rain ? "Yes" : "No" }}</b>
+        </td>
+      </tr>
+      <tr>
+        <td>Pack for Cold?</td>
+        <td>
+          <b>{{ packing.cold ? "Yes" : "No" }}</b>
+        </td>
+      </tr>
+      <tr>
+        <td>Pack for Warm?</td>
+        <td>
+          <b>{{ packing.warm ? "Yes" : "No" }}</b>
+        </td>
+      </tr>
+      <tr>
+        <td>Pack for Hot?</td>
+        <td>
+          <b>{{ packing.hot ? "Yes" : "No" }}</b>
+        </td>
+      </tr>
+    </table>
+    <br>
+    <table v-if="summary !== undefined">
+      <tr>
+        <td><b>Day</td>
+        <td><b>Temperature</b></td>
+        <td><b>Wind Speed</b></td>
+        <td><b>Rainfall Level</b></td>
+      </tr>
+      <tr v-for="(item, index) in summary">
+        <td>{{new Date(item.dt).toDateString()+" "+ new Date(item.dt).toLocaleTimeString()}}</td>
+        <td>{{ item.temperature }} °C</td>
+        <td>{{ item.wind.speed }} Km/H</td>
+        <td>{{ item.rain }}</td>
+      </tr>
+    </table>
+  </div>
+  <script>
+    var app = new Vue({
+      el: "#app",
+      data: {
+        city: "",
+        packing: undefined,
+        summary: undefined,
+        input: ""
+      },
+      methods: {
+        submit: function() {
+          this.city = this.input;
+          var myHeaders = new Headers();
+          myHeaders.append(
+            "Access-Control-Allow-Origin",
+            "http://localhost:3000"
+          );
+
+          var myInit = {
+            method: "GET",
+            headers: myHeaders,
+            cache: "default",
+            mode: "cors"
+          };
+
+          const packingUrl = "http://localhost:3000/getPacking/" + this.city;
+
+          var packingRequest = new Request(packingUrl, myInit);
+
+          fetch(packingRequest)
+            .then(response => {
+              return response.json();
+            })
+            .then(data => {
+              this.packing = data;
+            });
+
+          const summaryUrl = "http://localhost:3000/getSummary/" + this.city;
+
+          var summaryRequest = new Request(summaryUrl, myInit);
+
+          fetch(summaryRequest)
+            .then(response => {
+              return response.json();
+            })
+            .then(data => {
+              this.summary = data;
+            });
+        }
+      }
+    });
+  </script>
+</html>
