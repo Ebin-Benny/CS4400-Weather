@@ -60,6 +60,8 @@
       },
       methods: {
         submit: function() {
+          this.packing = {};
+          this.summary = {};
           this.city = this.input;
           var myHeaders = new Headers();
           myHeaders.append(
