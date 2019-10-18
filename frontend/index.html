@@ -2,60 +2,53 @@
 <html>
   <!-- development version, includes helpful console warnings -->
   <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-  <h1>Weather</h1>
+  <h1>Weather Forecast</h1>
   <div id="app">
-    <h2>{{ city }}</h2>
-    <input v-model="input" v-on:keyup.enter="submit" />
-    <table v-if="packing !== undefined">
-      <tr></tr>
-      <tr>
-        <td>Bring an Umbrella?</td>
-        <td>
-          <b>{{ packing.rain ? "Yes" : "No" }}</b>
-        </td>
-      </tr>
-      <tr>
-        <td>Pack for Cold?</td>
-        <td>
-          <b>{{ packing.cold ? "Yes" : "No" }}</b>
-        </td>
-      </tr>
-      <tr>
-        <td>Pack for Warm?</td>
-        <td>
-          <b>{{ packing.warm ? "Yes" : "No" }}</b>
-        </td>
-      </tr>
-      <tr>
-        <td>Pack for Hot?</td>
-        <td>
-          <b>{{ packing.hot ? "Yes" : "No" }}</b>
-        </td>
-      </tr>
-    </table>
-    <br>
-    <table v-if="summary !== undefined">
-      <tr>
-        <td><b>Day</td>
-        <td><b>Temperature</b></td>
-        <td><b>Wind Speed</b></td>
-        <td><b>Rainfall Level</b></td>
-      </tr>
-      <tr v-for="(item, index) in summary">
-        <td>{{new Date(item.dt).toDateString()+" "+ new Date(item.dt).toLocaleTimeString()}}</td>
-        <td>{{ item.temperature }} °C</td>
-        <td>{{ item.wind.speed }} Km/H</td>
-        <td>{{ item.rain }}</td>
-      </tr>
-    </table>
+    <h2 v-if="city">Place: {{ city }}</h2>
+    <input v-model="input" placeholder="Place" />
+    <button v-on:click="submit">Enter</button>
+
+    <div v-if="packing">
+      <h3>Packing Information</h3>
+      <div v-if="packing.rain">You should pack for <b>rain</b>.<br /></div>
+      <div v-if="packing.cold">
+        You should pack for <b>cold</b> weather.<br />
+      </div>
+      <div v-if="packing.warm">
+        You should pack for <b>warm</b> weather.<br />
+      </div>
+      <div v-if="packing.hot">
+        You should pack for <b>hot</b> weather.<br />
+      </div>
+    </div>
+
+    <div v-if="days">
+      <h3>5 Day Summary (3 Hour Intervals)</h3>
+      <div v-for="day in days" v-bind:key="day.date">
+        <table>
+          <tr>
+            <th>{{ day.date }}</th>
+            <th>Temperature</th>
+            <th>Rain</th>
+            <th>Wind Speed</th>
+          </tr>
+          <tr v-for="hour in day.hours">
+            <td>{{ hour.hour }}:00</td>
+            <td>{{ hour.temperature }} °C</td>
+            <td>{{ hour.rain }} mm/3h</td>
+            <td>{{ hour.wind.speed }} km/h</td>
+          </tr>
+        </table>
+      </div>
+    </div>
   </div>
   <script>
     var app = new Vue({
       el: "#app",
       data: {
-        city: "",
+        city: undefined,
         packing: undefined,
-        summary: undefined,
+        days: undefined,
         input: ""
       },
       methods: {
@@ -91,13 +84,12 @@
           const summaryUrl = "http://localhost:3000/getSummary/" + this.city;
 
           var summaryRequest = new Request(summaryUrl, myInit);
-
           fetch(summaryRequest)
             .then(response => {
               return response.json();
             })
             .then(data => {
-              this.summary = data;
+              this.days = data;
             });
         }
       }

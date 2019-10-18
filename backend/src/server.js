@@ -80,13 +80,39 @@ router.get("/getSummary/:city", cors(), async (req, res) => {
   }
 
   const summary = [];
+  let dayCount = -1;
+  let currentDate = undefined;
 
-  for (const [i, day] of result.data.list.entries()) {
-    summary[i] = {};
-    summary[i]["dt"] = day.dt * 1000;
-    summary[i]["temperature"] = day.main.temp;
-    summary[i]["wind"] = day.wind;
-    summary[i]["rain"] = (day.rain && day.rain["3h"]) ? day.rain["3h"] : 0;
+  for (const day of result.data.list) {
+    let date = new Date(day.dt * 1000).toLocaleDateString();
+    let hour = new Date(day.dt * 1000).getUTCHours();
+
+    if (date !== currentDate) {
+      currentDate = date;
+      dayCount++;
+    }
+
+    if (!summary[dayCount]) {
+      summary[dayCount] = { date: currentDate };
+    }
+
+    if (!summary[dayCount]["hours"]) {
+      summary[dayCount]["hours"] = [
+        {
+          hour,
+          temperature: day.main.temp,
+          wind: day.wind,
+          rain: day.rain && day.rain["3h"] ? day.rain["3h"] : 0
+        }
+      ];
+    } else {
+      summary[dayCount]["hours"].push({
+        hour,
+        temperature: day.main.temp,
+        wind: day.wind,
+        rain: day.rain && day.rain["3h"] ? day.rain["3h"] : 0
+      });
+    }
   }
 
   return res.json(summary);
